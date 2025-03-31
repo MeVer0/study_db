@@ -1,0 +1,229 @@
+<html>
+<head>
+<title>console_4.sql</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #7a7e85;}
+.s1 { color: #bcbec4;}
+.s2 { color: #cf8e6d;}
+.s3 { color: #bcbec4;}
+.s4 { color: #2aacb8;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+console_4.sql</font>
+</center></td></tr></table>
+<pre><span class="s0">-- Задача 1</span>
+<span class="s0">-- Условие</span>
+<span class="s0">--</span>
+<span class="s0">-- Найти всех сотрудников, подчиняющихся Ивану Иванову (с EmployeeID = 1), включая их подчиненных и подчиненных подчиненных.</span>
+<span class="s0">-- Для каждого сотрудника вывести следующую информацию:</span>
+<span class="s0">--</span>
+<span class="s0">-- EmployeeID: идентификатор сотрудника.</span>
+<span class="s0">-- Имя сотрудника.</span>
+<span class="s0">-- ManagerID: Идентификатор менеджера.</span>
+<span class="s0">-- Название отдела, к которому он принадлежит.</span>
+<span class="s0">-- Название роли, которую он занимает.</span>
+<span class="s0">-- Название проектов, к которым он относится (если есть, конкатенированные в одном столбце через запятую).</span>
+<span class="s0">-- Название задач, назначенных этому сотруднику (если есть, конкатенированные в одном столбце через запятую).</span>
+<span class="s0">-- Если у сотрудника нет назначенных проектов или задач, отобразить NULL.</span>
+<span class="s0">-- Требования:</span>
+<span class="s0">--</span>
+<span class="s0">-- Рекурсивно извлечь всех подчиненных сотрудников Ивана Иванова и их подчиненных.</span>
+<span class="s0">-- Для каждого сотрудника отобразить информацию из всех таблиц.</span>
+<span class="s0">-- Результаты должны быть отсортированы по имени сотрудника.</span>
+<span class="s0">-- Решение задачи должно представлять из себя один sql-запрос и задействовать ключевое слово RECURSIVE.</span>
+
+<span class="s2">WITH RECURSIVE </span><span class="s1">subordinates </span><span class="s2">AS </span><span class="s3">(</span>
+    <span class="s2">SELECT</span>
+        <span class="s1">EmployeeID</span><span class="s3">,</span>
+        <span class="s2">Name</span><span class="s3">,</span>
+        <span class="s1">ManagerID</span><span class="s3">,</span>
+        <span class="s1">DepartmentID</span><span class="s3">,</span>
+        <span class="s1">RoleID</span>
+    <span class="s2">FROM</span>
+        <span class="s1">Employees</span>
+    <span class="s2">WHERE</span>
+        <span class="s1">ManagerID = </span><span class="s4">1</span>
+    <span class="s2">UNION ALL</span>
+    <span class="s2">SELECT</span>
+        <span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID</span><span class="s3">,</span>
+        <span class="s1">e</span><span class="s3">.</span><span class="s1">Name</span><span class="s3">,</span>
+        <span class="s1">e</span><span class="s3">.</span><span class="s1">ManagerID</span><span class="s3">,</span>
+        <span class="s1">e</span><span class="s3">.</span><span class="s1">DepartmentID</span><span class="s3">,</span>
+        <span class="s1">e</span><span class="s3">.</span><span class="s1">RoleID</span>
+    <span class="s2">FROM</span>
+        <span class="s1">Employees e</span>
+    <span class="s2">JOIN </span><span class="s1">subordinates </span><span class="s2">s ON </span><span class="s1">e</span><span class="s3">.</span><span class="s1">ManagerID = </span><span class="s2">s</span><span class="s3">.</span><span class="s1">EmployeeID</span>
+<span class="s3">)</span>
+<span class="s2">SELECT</span>
+    <span class="s2">s</span><span class="s3">.</span><span class="s1">EmployeeID</span><span class="s3">,</span>
+    <span class="s2">s</span><span class="s3">.</span><span class="s1">Name</span><span class="s3">,</span>
+    <span class="s2">s</span><span class="s3">.</span><span class="s1">ManagerID</span><span class="s3">,</span>
+    <span class="s2">d</span><span class="s3">.</span><span class="s1">DepartmentName </span><span class="s2">AS </span><span class="s1">Department</span><span class="s3">,</span>
+    <span class="s1">r</span><span class="s3">.</span><span class="s1">RoleName </span><span class="s2">AS Role</span><span class="s3">,</span>
+    <span class="s3">(</span><span class="s2">SELECT</span>
+        <span class="s1">STRING_AGG</span><span class="s3">(</span><span class="s1">p</span><span class="s3">.</span><span class="s1">ProjectName</span><span class="s3">, </span><span class="s5">', '</span><span class="s3">)</span>
+    <span class="s2">FROM </span><span class="s1">projects p</span>
+        <span class="s2">WHERE </span><span class="s1">p</span><span class="s3">.</span><span class="s1">DepartmentID = </span><span class="s2">s</span><span class="s3">.</span><span class="s1">DepartmentID</span>
+    <span class="s3">) </span><span class="s1">projects</span><span class="s3">,</span>
+    <span class="s3">(</span>
+     <span class="s2">SELECT </span><span class="s1">STRING_AGG</span><span class="s3">(</span><span class="s1">t</span><span class="s3">.</span><span class="s1">TaskName</span><span class="s3">, </span><span class="s5">', '</span><span class="s3">)</span>
+        <span class="s2">FROM </span><span class="s1">Tasks t</span>
+     <span class="s2">WHERE </span><span class="s1">t</span><span class="s3">.</span><span class="s1">AssignedTo = </span><span class="s2">s</span><span class="s3">.</span><span class="s1">EmployeeID</span>
+    <span class="s3">) </span><span class="s1">tasks</span>
+<span class="s2">FROM</span>
+    <span class="s1">Subordinates </span><span class="s2">s</span>
+        <span class="s2">JOIN </span><span class="s1">Departments </span><span class="s2">d ON s</span><span class="s3">.</span><span class="s1">DepartmentID = </span><span class="s2">d</span><span class="s3">.</span><span class="s1">DepartmentID</span>
+        <span class="s2">JOIN </span><span class="s1">Roles r </span><span class="s2">ON s</span><span class="s3">.</span><span class="s1">RoleID = r</span><span class="s3">.</span><span class="s1">RoleID</span>
+<span class="s2">ORDER BY s</span><span class="s3">.</span><span class="s1">Name</span><span class="s3">;</span>
+
+
+<span class="s0">-- Задача 2</span>
+<span class="s0">-- Условие</span>
+<span class="s0">--</span>
+<span class="s0">-- Найти всех сотрудников, подчиняющихся Ивану Иванову с EmployeeID = 1, включая их подчиненных и подчиненных подчиненных.</span>
+<span class="s0">-- Для каждого сотрудника вывести следующую информацию:</span>
+<span class="s0">--</span>
+<span class="s0">-- EmployeeID: идентификатор сотрудника.</span>
+<span class="s0">-- Имя сотрудника.</span>
+<span class="s0">-- Идентификатор менеджера.</span>
+<span class="s0">-- Название отдела, к которому он принадлежит.</span>
+<span class="s0">-- Название роли, которую он занимает.</span>
+<span class="s0">-- Название проектов, к которым он относится (если есть, конкатенированные в одном столбце).</span>
+<span class="s0">-- Название задач, назначенных этому сотруднику (если есть, конкатенированные в одном столбце).</span>
+<span class="s0">-- Общее количество задач, назначенных этому сотруднику.</span>
+<span class="s0">-- Общее количество подчиненных у каждого сотрудника (не включая подчиненных их подчиненных).</span>
+<span class="s0">-- Если у сотрудника нет назначенных проектов или задач, отобразить NULL.</span>
+<span class="s2">WITH RECURSIVE </span><span class="s1">Subordinates </span><span class="s2">AS </span><span class="s3">(</span>
+    <span class="s2">SELECT </span><span class="s1">EmployeeID</span><span class="s3">, </span><span class="s1">ManagerID</span><span class="s3">, </span><span class="s2">Name</span><span class="s3">, </span><span class="s1">DepartmentID</span><span class="s3">, </span><span class="s1">RoleID</span>
+    <span class="s2">FROM </span><span class="s1">Employees</span>
+    <span class="s2">WHERE </span><span class="s1">ManagerID = </span><span class="s4">1</span>
+
+    <span class="s2">UNION ALL</span>
+
+    <span class="s2">SELECT </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID</span><span class="s3">,</span>
+           <span class="s1">e</span><span class="s3">.</span><span class="s1">ManagerID</span><span class="s3">,</span>
+           <span class="s1">e</span><span class="s3">.</span><span class="s1">Name</span><span class="s3">,</span>
+           <span class="s1">e</span><span class="s3">.</span><span class="s1">DepartmentID</span><span class="s3">,</span>
+           <span class="s1">e</span><span class="s3">.</span><span class="s1">RoleID</span>
+    <span class="s2">FROM </span><span class="s1">Employees e</span>
+             <span class="s2">INNER JOIN </span><span class="s1">Subordinates </span><span class="s2">s ON </span><span class="s1">e</span><span class="s3">.</span><span class="s1">ManagerID = </span><span class="s2">s</span><span class="s3">.</span><span class="s1">EmployeeID</span>
+<span class="s3">),</span>
+               <span class="s1">SubordinateCount </span><span class="s2">AS </span><span class="s3">(</span>
+                   <span class="s2">SELECT </span><span class="s1">ManagerID</span><span class="s3">, </span><span class="s1">COUNT</span><span class="s3">(</span><span class="s1">*</span><span class="s3">) </span><span class="s2">as </span><span class="s1">DirectSubordinates</span>
+                   <span class="s2">FROM </span><span class="s1">Employees</span>
+                   <span class="s2">WHERE </span><span class="s1">ManagerID </span><span class="s2">IS NOT NULL</span>
+                   <span class="s2">GROUP BY </span><span class="s1">ManagerID</span>
+               <span class="s3">),</span>
+               <span class="s1">ProjectAggregation </span><span class="s2">AS </span><span class="s3">(</span>
+                   <span class="s2">SELECT</span>
+                       <span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID</span><span class="s3">,</span>
+                       <span class="s1">STRING_AGG</span><span class="s3">(</span><span class="s1">p</span><span class="s3">.</span><span class="s1">ProjectName</span><span class="s3">, </span><span class="s5">', '</span><span class="s3">) </span><span class="s2">as </span><span class="s1">Projects</span>
+                   <span class="s2">FROM </span><span class="s1">Subordinates e</span>
+                            <span class="s2">LEFT JOIN </span><span class="s1">Tasks t </span><span class="s2">ON </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID = t</span><span class="s3">.</span><span class="s1">AssignedTo</span>
+                            <span class="s2">LEFT JOIN </span><span class="s1">Projects p </span><span class="s2">ON </span><span class="s1">t</span><span class="s3">.</span><span class="s1">ProjectID = p</span><span class="s3">.</span><span class="s1">ProjectID</span>
+                   <span class="s2">GROUP BY </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID</span>
+               <span class="s3">),</span>
+               <span class="s1">TaskAggregation </span><span class="s2">AS </span><span class="s3">(</span>
+                   <span class="s2">SELECT</span>
+                       <span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID</span><span class="s3">,</span>
+                       <span class="s1">STRING_AGG</span><span class="s3">(</span><span class="s1">t</span><span class="s3">.</span><span class="s1">TaskName</span><span class="s3">, </span><span class="s5">', '</span><span class="s3">) </span><span class="s2">as </span><span class="s1">Tasks</span><span class="s3">,</span>
+                       <span class="s1">COUNT</span><span class="s3">(</span><span class="s1">t</span><span class="s3">.</span><span class="s1">TaskID</span><span class="s3">) </span><span class="s2">as </span><span class="s1">TaskCount</span>
+                   <span class="s2">FROM </span><span class="s1">Subordinates e</span>
+                            <span class="s2">LEFT JOIN </span><span class="s1">Tasks t </span><span class="s2">ON </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID = t</span><span class="s3">.</span><span class="s1">AssignedTo</span>
+                   <span class="s2">GROUP BY </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID</span>
+               <span class="s3">)</span>
+<span class="s2">SELECT</span>
+    <span class="s2">s</span><span class="s3">.</span><span class="s1">EmployeeID</span><span class="s3">,</span>
+    <span class="s2">s</span><span class="s3">.</span><span class="s1">Name EmployeeName</span><span class="s3">,</span>
+    <span class="s2">s</span><span class="s3">.</span><span class="s1">ManagerID</span><span class="s3">,</span>
+    <span class="s2">d</span><span class="s3">.</span><span class="s1">DepartmentName</span><span class="s3">,</span>
+    <span class="s1">r</span><span class="s3">.</span><span class="s1">RoleName</span><span class="s3">,</span>
+    <span class="s2">NULLIF</span><span class="s3">(</span><span class="s1">pa</span><span class="s3">.</span><span class="s1">Projects</span><span class="s3">, </span><span class="s5">''</span><span class="s3">),</span>
+    <span class="s2">NULLIF</span><span class="s3">(</span><span class="s1">ta</span><span class="s3">.</span><span class="s1">Tasks</span><span class="s3">, </span><span class="s5">''</span><span class="s3">),</span>
+    <span class="s1">ta</span><span class="s3">.</span><span class="s1">TaskCount</span><span class="s3">,</span>
+    <span class="s2">COALESCE</span><span class="s3">(</span><span class="s1">sc</span><span class="s3">.</span><span class="s1">DirectSubordinates</span><span class="s3">, </span><span class="s4">0</span><span class="s3">)</span>
+<span class="s2">FROM </span><span class="s1">Subordinates </span><span class="s2">s</span>
+         <span class="s2">LEFT JOIN </span><span class="s1">Departments </span><span class="s2">d ON s</span><span class="s3">.</span><span class="s1">DepartmentID = </span><span class="s2">d</span><span class="s3">.</span><span class="s1">DepartmentID</span>
+         <span class="s2">LEFT JOIN </span><span class="s1">Roles r </span><span class="s2">ON s</span><span class="s3">.</span><span class="s1">RoleID = r</span><span class="s3">.</span><span class="s1">RoleID</span>
+         <span class="s2">LEFT JOIN </span><span class="s1">ProjectAggregation pa </span><span class="s2">ON s</span><span class="s3">.</span><span class="s1">EmployeeID = pa</span><span class="s3">.</span><span class="s1">EmployeeID</span>
+         <span class="s2">LEFT JOIN </span><span class="s1">TaskAggregation ta </span><span class="s2">ON s</span><span class="s3">.</span><span class="s1">EmployeeID = ta</span><span class="s3">.</span><span class="s1">EmployeeID</span>
+         <span class="s2">LEFT JOIN </span><span class="s1">SubordinateCount sc </span><span class="s2">ON s</span><span class="s3">.</span><span class="s1">EmployeeID = sc</span><span class="s3">.</span><span class="s1">ManagerID</span>
+<span class="s2">ORDER BY </span><span class="s1">EmployeeName</span><span class="s3">;</span>
+
+
+<span class="s0">-- Задача 3</span>
+<span class="s0">-- Условие</span>
+<span class="s0">--</span>
+<span class="s0">-- Найти всех сотрудников, которые занимают роль менеджера и имеют подчиненных (то есть число подчиненных больше 0).</span>
+<span class="s0">-- Для каждого такого сотрудника вывести следующую информацию:</span>
+<span class="s0">--</span>
+<span class="s0">-- EmployeeID: идентификатор сотрудника.</span>
+<span class="s0">-- Имя сотрудника.</span>
+<span class="s0">-- Идентификатор менеджера.</span>
+<span class="s0">-- Название отдела, к которому он принадлежит.</span>
+<span class="s0">-- Название роли, которую он занимает.</span>
+<span class="s0">-- Название проектов, к которым он относится (если есть, конкатенированные в одном столбце).</span>
+<span class="s0">-- Название задач, назначенных этому сотруднику (если есть, конкатенированные в одном столбце).</span>
+<span class="s0">-- Общее количество подчиненных у каждого сотрудника (включая их подчиненных).</span>
+<span class="s0">-- Если у сотрудника нет назначенных проектов или задач, отобразить NULL.</span>
+<span class="s2">WITH RECURSIVE </span><span class="s1">Subordinates </span><span class="s2">AS </span><span class="s3">(</span>
+    <span class="s2">SELECT </span><span class="s1">EmployeeID</span><span class="s3">, </span><span class="s1">ManagerID</span>
+    <span class="s2">FROM </span><span class="s1">Employees</span>
+    <span class="s2">WHERE </span><span class="s1">ManagerID </span><span class="s2">IS NOT NULL</span>
+
+    <span class="s2">UNION ALL</span>
+
+    <span class="s2">SELECT </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID</span><span class="s3">, </span><span class="s2">s</span><span class="s3">.</span><span class="s1">ManagerID</span>
+    <span class="s2">FROM </span><span class="s1">Employees e</span>
+             <span class="s2">INNER JOIN </span><span class="s1">Subordinates </span><span class="s2">s ON </span><span class="s1">e</span><span class="s3">.</span><span class="s1">ManagerID = </span><span class="s2">s</span><span class="s3">.</span><span class="s1">EmployeeID</span>
+<span class="s3">),</span>
+               <span class="s1">SubordinateCount </span><span class="s2">AS </span><span class="s3">(</span>
+                   <span class="s2">SELECT</span>
+                       <span class="s1">ManagerID</span><span class="s3">,</span>
+                       <span class="s1">COUNT</span><span class="s3">(</span><span class="s2">DISTINCT </span><span class="s1">EmployeeID</span><span class="s3">) </span><span class="s2">as </span><span class="s1">TotalSubordinates</span>
+                   <span class="s2">FROM </span><span class="s1">Subordinates</span>
+                   <span class="s2">GROUP BY </span><span class="s1">ManagerID</span>
+               <span class="s3">),</span>
+               <span class="s1">ProjectAggregation </span><span class="s2">AS </span><span class="s3">(</span>
+                   <span class="s2">SELECT</span>
+                       <span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID</span><span class="s3">,</span>
+                       <span class="s1">STRING_AGG</span><span class="s3">(</span><span class="s1">p</span><span class="s3">.</span><span class="s1">ProjectName</span><span class="s3">, </span><span class="s5">', '</span><span class="s3">) </span><span class="s2">as </span><span class="s1">Projects</span>
+                   <span class="s2">FROM </span><span class="s1">Employees e</span>
+                            <span class="s2">LEFT JOIN </span><span class="s1">Tasks t </span><span class="s2">ON </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID = t</span><span class="s3">.</span><span class="s1">AssignedTo</span>
+                            <span class="s2">LEFT JOIN </span><span class="s1">Projects p </span><span class="s2">ON </span><span class="s1">t</span><span class="s3">.</span><span class="s1">ProjectID = p</span><span class="s3">.</span><span class="s1">ProjectID</span>
+                   <span class="s2">GROUP BY </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID</span>
+               <span class="s3">),</span>
+               <span class="s1">TaskAggregation </span><span class="s2">AS </span><span class="s3">(</span>
+                   <span class="s2">SELECT</span>
+                       <span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID</span><span class="s3">,</span>
+                       <span class="s1">STRING_AGG</span><span class="s3">(</span><span class="s1">t</span><span class="s3">.</span><span class="s1">TaskName</span><span class="s3">, </span><span class="s5">', '</span><span class="s3">) </span><span class="s2">as </span><span class="s1">Tasks</span>
+                   <span class="s2">FROM </span><span class="s1">Employees e</span>
+                            <span class="s2">LEFT JOIN </span><span class="s1">Tasks t </span><span class="s2">ON </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID = t</span><span class="s3">.</span><span class="s1">AssignedTo</span>
+                   <span class="s2">GROUP BY </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID</span>
+               <span class="s3">)</span>
+
+<span class="s2">SELECT</span>
+    <span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID</span><span class="s3">,</span>
+    <span class="s1">e</span><span class="s3">.</span><span class="s1">Name EmployeeName</span><span class="s3">,</span>
+    <span class="s1">e</span><span class="s3">.</span><span class="s1">ManagerID</span><span class="s3">,</span>
+    <span class="s2">d</span><span class="s3">.</span><span class="s1">DepartmentName</span><span class="s3">,</span>
+    <span class="s1">r</span><span class="s3">.</span><span class="s1">RoleName</span><span class="s3">,</span>
+    <span class="s2">NULLIF</span><span class="s3">(</span><span class="s1">pa</span><span class="s3">.</span><span class="s1">Projects</span><span class="s3">, </span><span class="s5">''</span><span class="s3">),</span>
+    <span class="s2">NULLIF</span><span class="s3">(</span><span class="s1">ta</span><span class="s3">.</span><span class="s1">Tasks</span><span class="s3">, </span><span class="s5">''</span><span class="s3">),</span>
+    <span class="s1">sc</span><span class="s3">.</span><span class="s1">TotalSubordinates</span>
+<span class="s2">FROM </span><span class="s1">Employees e</span>
+         <span class="s2">JOIN </span><span class="s1">Roles r </span><span class="s2">ON </span><span class="s1">e</span><span class="s3">.</span><span class="s1">RoleID = r</span><span class="s3">.</span><span class="s1">RoleID</span>
+         <span class="s2">JOIN </span><span class="s1">Departments </span><span class="s2">d ON </span><span class="s1">e</span><span class="s3">.</span><span class="s1">DepartmentID = </span><span class="s2">d</span><span class="s3">.</span><span class="s1">DepartmentID</span>
+         <span class="s2">JOIN </span><span class="s1">SubordinateCount sc </span><span class="s2">ON </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID = sc</span><span class="s3">.</span><span class="s1">ManagerID</span>
+         <span class="s2">LEFT JOIN </span><span class="s1">ProjectAggregation pa </span><span class="s2">ON </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID = pa</span><span class="s3">.</span><span class="s1">EmployeeID</span>
+         <span class="s2">LEFT JOIN </span><span class="s1">TaskAggregation ta </span><span class="s2">ON </span><span class="s1">e</span><span class="s3">.</span><span class="s1">EmployeeID = ta</span><span class="s3">.</span><span class="s1">EmployeeID</span>
+<span class="s2">WHERE </span><span class="s1">r</span><span class="s3">.</span><span class="s1">RoleName </span><span class="s2">ILIKE </span><span class="s5">'%менеджер%'</span>
+<span class="s2">ORDER BY </span><span class="s1">EmployeeName</span><span class="s3">;</span></pre>
+</body>
+</html>

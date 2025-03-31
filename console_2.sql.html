@@ -1,0 +1,151 @@
+<html>
+<head>
+<title>console_2.sql</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bcbec4;}
+.s1 { color: #7a7e85;}
+.s2 { color: #cf8e6d;}
+.s3 { color: #bcbec4;}
+.s4 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+console_2.sql</font>
+</center></td></tr></table>
+<pre>
+<span class="s1">--Определить, какие автомобили из каждого класса имеют наименьшую среднюю позицию в гонках, и</span>
+<span class="s1">-- вывести информацию о каждом таком автомобиле для данного класса, включая его класс,</span>
+<span class="s1">-- среднюю позицию и количество гонок, в которых он участвовал.</span>
+<span class="s1">-- Также отсортировать результаты по средней позиции.</span>
+<span class="s2">select c</span><span class="s3">.</span><span class="s0">name car_name</span><span class="s3">, </span><span class="s2">c</span><span class="s3">.</span><span class="s0">class car_class</span><span class="s3">, </span><span class="s0">avg</span><span class="s3">(</span><span class="s0">r</span><span class="s3">.</span><span class="s0">position</span><span class="s3">) </span><span class="s0">average_position</span><span class="s3">, </span><span class="s0">count</span><span class="s3">(</span><span class="s2">c</span><span class="s3">.</span><span class="s0">name</span><span class="s3">) </span><span class="s0">race_count</span>
+    <span class="s2">from</span>
+        <span class="s0">cars </span><span class="s2">c</span>
+<span class="s2">join </span><span class="s0">results r </span><span class="s2">on c</span><span class="s3">.</span><span class="s0">name = r</span><span class="s3">.</span><span class="s0">car</span>
+<span class="s2">group by c</span><span class="s3">.</span><span class="s0">name</span><span class="s3">, </span><span class="s2">c</span><span class="s3">.</span><span class="s0">class</span>
+<span class="s2">order by </span><span class="s0">average_position</span><span class="s3">, </span><span class="s0">car_class</span><span class="s3">;</span>
+
+
+<span class="s1">--Определить автомобиль, который имеет наименьшую среднюю позицию в гонках среди всех автомобилей,</span>
+<span class="s1">-- и вывести информацию об этом автомобиле, включая его класс, среднюю позицию, количество гонок,</span>
+<span class="s1">-- в которых он участвовал, и страну производства класса автомобиля. Если несколько автомобилей</span>
+<span class="s1">-- имеют одинаковую наименьшую среднюю позицию, выбрать один из них по алфавиту (по имени автомобиля).</span>
+<span class="s2">select c</span><span class="s3">.</span><span class="s0">name car_name</span><span class="s3">, </span><span class="s2">c</span><span class="s3">.</span><span class="s0">class car_class</span><span class="s3">, </span><span class="s0">avg</span><span class="s3">(</span><span class="s0">r</span><span class="s3">.</span><span class="s0">position</span><span class="s3">) </span><span class="s0">average_position</span><span class="s3">, </span><span class="s0">count</span><span class="s3">(</span><span class="s2">c</span><span class="s3">.</span><span class="s0">name</span><span class="s3">) </span><span class="s0">race_count</span><span class="s3">, </span><span class="s0">c_inf</span><span class="s3">.</span><span class="s0">country</span>
+<span class="s2">from</span>
+    <span class="s0">cars </span><span class="s2">c</span>
+        <span class="s2">join </span><span class="s0">results r </span><span class="s2">on c</span><span class="s3">.</span><span class="s0">name = r</span><span class="s3">.</span><span class="s0">car</span>
+<span class="s2">join </span><span class="s0">classes c_inf </span><span class="s2">on c</span><span class="s3">.</span><span class="s0">class = c_inf</span><span class="s3">.</span><span class="s0">class</span>
+<span class="s2">group by c</span><span class="s3">.</span><span class="s0">name</span><span class="s3">, </span><span class="s2">c</span><span class="s3">.</span><span class="s0">class</span><span class="s3">, </span><span class="s0">c_inf</span><span class="s3">.</span><span class="s0">country</span>
+<span class="s2">order by </span><span class="s0">average_position</span><span class="s3">, </span><span class="s0">car_class</span>
+<span class="s2">limit </span><span class="s4">1</span><span class="s3">;</span>
+
+
+<span class="s1">--Определить классы автомобилей, которые имеют наименьшую среднюю позицию в гонках, и вывести информацию</span>
+<span class="s1">-- о каждом автомобиле из этих классов, включая его имя, среднюю позицию, количество гонок, в которых он</span>
+<span class="s1">-- участвовал, страну производства класса автомобиля, а также общее количество гонок, в которых участвовали</span>
+<span class="s1">-- автомобили этих классов. Если несколько классов имеют одинаковую среднюю позицию, выбрать все из них.</span>
+<span class="s2">with </span><span class="s0">RankedClasses </span><span class="s2">as </span><span class="s3">(</span>
+    <span class="s2">select </span><span class="s0">c_int</span><span class="s3">.</span><span class="s0">class</span><span class="s3">,</span>
+           <span class="s0">avg</span><span class="s3">(</span><span class="s0">r</span><span class="s3">.</span><span class="s0">position</span><span class="s3">) </span><span class="s0">avg_pos</span><span class="s3">,</span>
+           <span class="s0">count</span><span class="s3">(</span><span class="s0">r</span><span class="s3">.</span><span class="s0">car</span><span class="s3">) </span><span class="s0">races_count</span><span class="s3">,</span>
+           <span class="s0">rank</span><span class="s3">() </span><span class="s2">over </span><span class="s3">(</span><span class="s2">order by </span><span class="s0">avg</span><span class="s3">(</span><span class="s0">r</span><span class="s3">.</span><span class="s0">position</span><span class="s3">)) </span><span class="s0">rank</span>
+    <span class="s2">from </span><span class="s0">classes c_int</span>
+             <span class="s2">join </span><span class="s0">cars </span><span class="s2">c on </span><span class="s0">c_int</span><span class="s3">.</span><span class="s0">class = </span><span class="s2">c</span><span class="s3">.</span><span class="s0">class</span>
+             <span class="s2">join </span><span class="s0">results r </span><span class="s2">on c</span><span class="s3">.</span><span class="s0">name = r</span><span class="s3">.</span><span class="s0">car</span>
+    <span class="s2">group by </span><span class="s0">c_int</span><span class="s3">.</span><span class="s0">class</span>
+<span class="s3">),</span>
+     <span class="s0">ClassTotalRaces </span><span class="s2">as </span><span class="s3">(</span>
+         <span class="s2">select </span><span class="s0">count</span><span class="s3">(</span><span class="s0">*</span><span class="s3">) </span><span class="s0">total_races</span><span class="s3">,</span>
+                <span class="s0">rc</span><span class="s3">.</span><span class="s0">class</span>
+         <span class="s2">from</span>
+             <span class="s0">cars</span>
+                 <span class="s2">join </span><span class="s0">results </span><span class="s2">on </span><span class="s0">cars</span><span class="s3">.</span><span class="s0">name = results</span><span class="s3">.</span><span class="s0">car</span>
+                 <span class="s2">join </span><span class="s0">races </span><span class="s2">on </span><span class="s0">results</span><span class="s3">.</span><span class="s0">race = races</span><span class="s3">.</span><span class="s0">name</span>
+                 <span class="s2">join </span><span class="s0">RankedClasses rc </span><span class="s2">on </span><span class="s0">cars</span><span class="s3">.</span><span class="s0">class = rc</span><span class="s3">.</span><span class="s0">class</span>
+         <span class="s2">group by </span><span class="s0">rc</span><span class="s3">.</span><span class="s0">class</span>
+     <span class="s3">)</span>
+<span class="s2">select</span>
+    <span class="s2">c</span><span class="s3">.</span><span class="s0">name</span><span class="s3">,</span>
+    <span class="s0">rc</span><span class="s3">.</span><span class="s0">class</span><span class="s3">,</span>
+    <span class="s0">rc</span><span class="s3">.</span><span class="s0">avg_pos</span><span class="s3">,</span>
+    <span class="s0">rc</span><span class="s3">.</span><span class="s0">races_count</span><span class="s3">,</span>
+    <span class="s0">c_inf</span><span class="s3">.</span><span class="s0">country</span><span class="s3">,</span>
+    <span class="s0">ctr</span><span class="s3">.</span><span class="s0">total_races</span>
+<span class="s2">from</span>
+    <span class="s0">RankedClasses rc</span>
+        <span class="s2">join </span><span class="s0">ClassTotalRaces ctr </span><span class="s2">on </span><span class="s0">ctr</span><span class="s3">.</span><span class="s0">class = rc</span><span class="s3">.</span><span class="s0">class</span>
+        <span class="s2">join </span><span class="s0">cars </span><span class="s2">c on </span><span class="s0">rc</span><span class="s3">.</span><span class="s0">class = </span><span class="s2">c</span><span class="s3">.</span><span class="s0">class</span>
+        <span class="s2">join </span><span class="s0">classes c_inf </span><span class="s2">on c</span><span class="s3">.</span><span class="s0">class = c_inf</span><span class="s3">.</span><span class="s0">class</span>
+<span class="s2">where </span><span class="s0">rc</span><span class="s3">.</span><span class="s0">rank = </span><span class="s4">1</span><span class="s3">;</span>
+
+
+<span class="s1">--Определить, какие автомобили имеют среднюю позицию лучше (меньше) средней позиции</span>
+<span class="s1">-- всех автомобилей в своем классе (то есть автомобилей в классе должно быть минимум два,</span>
+<span class="s1">-- чтобы выбрать один из них). Вывести информацию об этих автомобилях, включая их имя,</span>
+<span class="s1">-- класс, среднюю позицию, количество гонок, в которых они участвовали, и страну производства</span>
+<span class="s1">-- класса автомобиля. Также отсортировать результаты по классу и затем по средней позиции</span>
+<span class="s1">-- в порядке возрастания.</span>
+<span class="s2">select </span><span class="s0">qs</span><span class="s3">.</span><span class="s0">name cars_name</span><span class="s3">,</span>
+       <span class="s0">qs</span><span class="s3">.</span><span class="s0">class car_class</span><span class="s3">,</span>
+       <span class="s0">qs</span><span class="s3">.</span><span class="s0">average_position</span><span class="s3">,</span>
+       <span class="s0">qs</span><span class="s3">.</span><span class="s0">race_count</span><span class="s3">,</span>
+       <span class="s2">c</span><span class="s3">.</span><span class="s0">country</span>
+    <span class="s2">from </span><span class="s3">(</span>
+             <span class="s2">select </span><span class="s0">cars</span><span class="s3">.</span><span class="s0">name</span><span class="s3">,</span>
+                    <span class="s0">classes</span><span class="s3">.</span><span class="s0">class</span><span class="s3">,</span>
+                    <span class="s0">avg</span><span class="s3">(</span><span class="s0">results</span><span class="s3">.</span><span class="s0">position</span><span class="s3">) </span><span class="s0">average_position</span><span class="s3">,</span>
+                    <span class="s0">count</span><span class="s3">(</span><span class="s0">results</span><span class="s3">.</span><span class="s0">*</span><span class="s3">) </span><span class="s0">race_count</span><span class="s3">,</span>
+                    <span class="s0">rank</span><span class="s3">() </span><span class="s2">over </span><span class="s3">(</span><span class="s2">partition by </span><span class="s0">cars</span><span class="s3">.</span><span class="s0">class </span><span class="s2">order by </span><span class="s0">avg</span><span class="s3">(</span><span class="s0">results</span><span class="s3">.</span><span class="s0">position</span><span class="s3">)) </span><span class="s0">rank</span><span class="s3">,</span>
+                    <span class="s0">count</span><span class="s3">(</span><span class="s0">cars</span><span class="s3">.</span><span class="s0">name</span><span class="s3">) </span><span class="s2">over </span><span class="s3">(</span><span class="s2">partition by </span><span class="s0">cars</span><span class="s3">.</span><span class="s0">class</span><span class="s3">)                      </span><span class="s0">cars_into_class</span>
+             <span class="s2">from </span><span class="s0">classes</span>
+                      <span class="s2">join </span><span class="s0">cars </span><span class="s2">on </span><span class="s0">classes</span><span class="s3">.</span><span class="s0">class = cars</span><span class="s3">.</span><span class="s0">class</span>
+                      <span class="s2">join </span><span class="s0">results </span><span class="s2">on </span><span class="s0">cars</span><span class="s3">.</span><span class="s0">name = results</span><span class="s3">.</span><span class="s0">car</span>
+             <span class="s2">group by </span><span class="s0">cars</span><span class="s3">.</span><span class="s0">name</span><span class="s3">, </span><span class="s0">classes</span><span class="s3">.</span><span class="s0">class</span>
+         <span class="s3">) </span><span class="s0">qs</span>
+    <span class="s2">join </span><span class="s0">classes </span><span class="s2">c on </span><span class="s0">qs</span><span class="s3">.</span><span class="s0">class = </span><span class="s2">c</span><span class="s3">.</span><span class="s0">class</span>
+<span class="s2">where </span><span class="s0">qs</span><span class="s3">.</span><span class="s0">rank = </span><span class="s4">1 </span><span class="s2">and </span><span class="s0">qs</span><span class="s3">.</span><span class="s0">cars_into_class &gt; </span><span class="s4">1</span><span class="s3">;</span>
+
+
+
+<span class="s1">---Определить, какие классы автомобилей имеют наибольшее количество автомобилей с низкой средней</span>
+<span class="s1">-- позицией (больше 3.0) и вывести информацию о каждом автомобиле из этих классов, включая его имя,</span>
+<span class="s1">-- класс, среднюю позицию, количество гонок, в которых он участвовал, страну производства класса</span>
+<span class="s1">-- автомобиля, а также общее количество гонок для каждого класса. Отсортировать результаты по количеству</span>
+<span class="s1">-- автомобилей с низкой средней позицией.</span>
+<span class="s2">with </span><span class="s0">carsAvgResult </span><span class="s2">as </span><span class="s3">(</span><span class="s2">select </span><span class="s0">cars</span><span class="s3">.</span><span class="s0">name car_name</span><span class="s3">,</span>
+                              <span class="s0">cars</span><span class="s3">.</span><span class="s0">class car_class</span><span class="s3">,</span>
+                              <span class="s0">avg</span><span class="s3">(</span><span class="s0">results</span><span class="s3">.</span><span class="s0">position</span><span class="s3">) </span><span class="s0">average_position</span><span class="s3">,</span>
+                              <span class="s0">count</span><span class="s3">(</span><span class="s0">results</span><span class="s3">.</span><span class="s0">*</span><span class="s3">) </span><span class="s0">race_count</span>
+                       <span class="s2">from </span><span class="s0">classes</span>
+                                <span class="s2">join </span><span class="s0">cars </span><span class="s2">on </span><span class="s0">classes</span><span class="s3">.</span><span class="s0">class = cars</span><span class="s3">.</span><span class="s0">class</span>
+                                <span class="s2">join </span><span class="s0">results </span><span class="s2">on </span><span class="s0">cars</span><span class="s3">.</span><span class="s0">name = results</span><span class="s3">.</span><span class="s0">car</span>
+                       <span class="s2">group by </span><span class="s0">cars</span><span class="s3">.</span><span class="s0">name</span><span class="s3">, </span><span class="s0">cars</span><span class="s3">.</span><span class="s0">class</span>
+                       <span class="s2">having </span><span class="s0">avg</span><span class="s3">(</span><span class="s0">results</span><span class="s3">.</span><span class="s0">position</span><span class="s3">) </span><span class="s0">&gt; </span><span class="s4">3</span><span class="s3">),</span>
+<span class="s0">totalClassRacesCount </span><span class="s2">as </span><span class="s3">(</span>
+    <span class="s2">select</span>
+        <span class="s0">carsAvgResult</span><span class="s3">.</span><span class="s0">car_class</span><span class="s3">,</span>
+        <span class="s0">count</span><span class="s3">(</span><span class="s0">races</span><span class="s3">.</span><span class="s0">*</span><span class="s3">) </span><span class="s0">total_races</span>
+    <span class="s2">from </span><span class="s0">races</span>
+        <span class="s2">join </span><span class="s0">results </span><span class="s2">on </span><span class="s0">races</span><span class="s3">.</span><span class="s0">name = results</span><span class="s3">.</span><span class="s0">race</span>
+    <span class="s2">join </span><span class="s0">cars </span><span class="s2">on </span><span class="s0">results</span><span class="s3">.</span><span class="s0">car = cars</span><span class="s3">.</span><span class="s0">name</span>
+    <span class="s2">join </span><span class="s0">carsAvgResult </span><span class="s2">on </span><span class="s0">carsAvgResult</span><span class="s3">.</span><span class="s0">car_class = cars</span><span class="s3">.</span><span class="s0">class</span>
+    <span class="s2">group by </span><span class="s0">carsAvgResult</span><span class="s3">.</span><span class="s0">car_class</span>
+<span class="s3">)</span>
+    <span class="s2">select</span>
+        <span class="s0">carsAvgResult</span><span class="s3">.</span><span class="s0">car_name</span><span class="s3">,</span>
+        <span class="s0">carsAvgResult</span><span class="s3">.</span><span class="s0">car_class</span><span class="s3">,</span>
+        <span class="s0">carsAvgResult</span><span class="s3">.</span><span class="s0">average_position</span><span class="s3">,</span>
+        <span class="s0">carsAvgResult</span><span class="s3">.</span><span class="s0">race_count</span><span class="s3">,</span>
+        <span class="s0">classes</span><span class="s3">.</span><span class="s0">country</span><span class="s3">,</span>
+        <span class="s0">totalClassRacesCount</span><span class="s3">.</span><span class="s0">total_races</span>
+
+<span class="s2">from</span>
+<span class="s0">classes</span>
+<span class="s2">join </span><span class="s0">carsAvgResult </span><span class="s2">on </span><span class="s0">carsAvgResult</span><span class="s3">.</span><span class="s0">car_class = classes</span><span class="s3">.</span><span class="s0">class</span>
+<span class="s2">join </span><span class="s0">totalClassRacesCount </span><span class="s2">on </span><span class="s0">totalClassRacesCount</span><span class="s3">.</span><span class="s0">car_class = carsAvgResult</span><span class="s3">.</span><span class="s0">car_class</span><span class="s3">;</span>
+</pre>
+</body>
+</html>

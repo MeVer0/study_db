@@ -1,0 +1,71 @@
+<html>
+<head>
+<title>console.sql</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #7a7e85;}
+.s1 { color: #bcbec4;}
+.s2 { color: #cf8e6d;}
+.s3 { color: #bcbec4;}
+.s4 { color: #6aab73;}
+.s5 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+console.sql</font>
+</center></td></tr></table>
+<pre><span class="s0">---Найдите производителей (maker) и модели всех мотоциклов,</span>
+<span class="s0">-- которые имеют мощность более 150 лошадиных сил, стоят менее</span>
+<span class="s0">-- 20 тысяч долларов и являются спортивными (тип Sport).</span>
+<span class="s0">-- Также отсортируйте результаты по мощности в порядке убывания.</span>
+<span class="s2">select </span><span class="s1">v</span><span class="s3">.</span><span class="s1">maker</span><span class="s3">, </span><span class="s1">v</span><span class="s3">.</span><span class="s1">model</span>
+<span class="s2">from</span>
+    <span class="s1">motorcycle </span><span class="s2">m</span>
+        <span class="s2">join </span><span class="s1">vehicle v </span><span class="s2">on m</span><span class="s3">.</span><span class="s1">model = v</span><span class="s3">.</span><span class="s1">model</span>
+        <span class="s2">and m</span><span class="s3">.</span><span class="s1">type = </span><span class="s4">'Sport'</span>
+        <span class="s2">and m</span><span class="s3">.</span><span class="s1">horsepower &gt; </span><span class="s5">150</span>
+        <span class="s2">and m</span><span class="s3">.</span><span class="s1">price &lt; </span><span class="s5">20000</span><span class="s3">;</span>
+
+
+<span class="s0">---Найти информацию о производителях и моделях различных типов</span>
+<span class="s0">-- транспортных средств (автомобили, мотоциклы и велосипеды),</span>
+<span class="s0">-- которые соответствуют заданным критериям.</span>
+<span class="s2">select </span><span class="s1">* </span><span class="s2">from</span>
+<span class="s3">(</span><span class="s2">select</span>
+    <span class="s1">v</span><span class="s3">.</span><span class="s1">maker</span><span class="s3">, </span><span class="s1">v</span><span class="s3">.</span><span class="s1">model</span><span class="s3">, </span><span class="s2">c</span><span class="s3">.</span><span class="s1">horsepower</span><span class="s3">, </span><span class="s2">c</span><span class="s3">.</span><span class="s1">engine_capacity</span><span class="s3">, </span><span class="s1">v</span><span class="s3">.</span><span class="s1">type</span>
+    <span class="s2">from</span>
+        <span class="s1">vehicle v</span>
+<span class="s2">join </span><span class="s1">car </span><span class="s2">c on </span><span class="s1">v</span><span class="s3">.</span><span class="s1">model = </span><span class="s2">c</span><span class="s3">.</span><span class="s1">model</span>
+            <span class="s2">and c</span><span class="s3">.</span><span class="s1">horsepower &gt; </span><span class="s5">150</span>
+            <span class="s2">and c</span><span class="s3">.</span><span class="s1">engine_capacity &lt; </span><span class="s5">3</span>
+            <span class="s2">and c</span><span class="s3">.</span><span class="s1">price &lt;</span><span class="s5">35000</span>
+
+<span class="s2">union</span>
+
+<span class="s2">select</span>
+    <span class="s1">v</span><span class="s3">.</span><span class="s1">maker</span><span class="s3">, </span><span class="s1">v</span><span class="s3">.</span><span class="s1">model</span><span class="s3">, </span><span class="s2">m</span><span class="s3">.</span><span class="s1">horsepower</span><span class="s3">, </span><span class="s2">m</span><span class="s3">.</span><span class="s1">engine_capacity</span><span class="s3">, </span><span class="s1">v</span><span class="s3">.</span><span class="s1">type</span>
+<span class="s2">from</span>
+    <span class="s1">vehicle v</span>
+<span class="s2">join </span><span class="s1">motorcycle </span><span class="s2">m on </span><span class="s1">v</span><span class="s3">.</span><span class="s1">model = </span><span class="s2">m</span><span class="s3">.</span><span class="s1">model</span>
+            <span class="s2">and m</span><span class="s3">.</span><span class="s1">horsepower &gt; </span><span class="s5">150</span>
+            <span class="s2">and m</span><span class="s3">.</span><span class="s1">engine_capacity &lt; </span><span class="s5">1.5</span>
+            <span class="s2">and m</span><span class="s3">.</span><span class="s1">price &lt;</span><span class="s5">20000</span>
+
+<span class="s2">union</span>
+
+<span class="s2">select</span>
+    <span class="s1">v</span><span class="s3">.</span><span class="s1">maker</span><span class="s3">, </span><span class="s1">v</span><span class="s3">.</span><span class="s1">model</span><span class="s3">, </span><span class="s2">null</span><span class="s3">, </span><span class="s2">null</span><span class="s3">, </span><span class="s1">v</span><span class="s3">.</span><span class="s1">type</span>
+<span class="s2">from</span>
+    <span class="s1">vehicle v</span>
+<span class="s2">join </span><span class="s1">bicycle b </span><span class="s2">on </span><span class="s1">v</span><span class="s3">.</span><span class="s1">model = b</span><span class="s3">.</span><span class="s1">model</span>
+            <span class="s2">and </span><span class="s1">b</span><span class="s3">.</span><span class="s1">gear_count &gt; </span><span class="s5">18</span>
+            <span class="s2">and </span><span class="s1">b</span><span class="s3">.</span><span class="s1">price &lt; </span><span class="s5">4000</span>
+    <span class="s3">) </span><span class="s2">as </span><span class="s1">qs</span>
+<span class="s2">order by </span><span class="s1">qs</span><span class="s3">.</span><span class="s1">horsepower </span><span class="s2">desc NULLS LAST</span>
+
+</pre>
+</body>
+</html>

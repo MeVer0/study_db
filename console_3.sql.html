@@ -1,0 +1,159 @@
+<html>
+<head>
+<title>console_3.sql</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bcbec4;}
+.s1 { color: #7a7e85;}
+.s2 { color: #cf8e6d;}
+.s3 { color: #bcbec4;}
+.s4 { color: #6aab73;}
+.s5 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+console_3.sql</font>
+</center></td></tr></table>
+<pre>
+<span class="s1">--Определить, какие клиенты сделали более двух бронирований в разных отелях, и вывести информацию</span>
+<span class="s1">-- о каждом таком клиенте, включая его имя, электронную почту, телефон, общее количество бронирований,</span>
+<span class="s1">-- а также список отелей, в которых они бронировали номера (объединенные в одно поле через запятую с помощью CONCAT).</span>
+<span class="s1">-- Также подсчитать среднюю длительность их пребывания (в днях) по всем бронированиям.</span>
+<span class="s1">-- Отсортировать результаты по количеству бронирований в порядке убывания.</span>
+<span class="s2">SELECT</span>
+    <span class="s2">c</span><span class="s3">.</span><span class="s0">name</span><span class="s3">,</span>
+    <span class="s2">c</span><span class="s3">.</span><span class="s0">email</span><span class="s3">,</span>
+    <span class="s2">c</span><span class="s3">.</span><span class="s0">phone</span><span class="s3">,</span>
+    <span class="s0">COUNT</span><span class="s3">(</span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_booking</span><span class="s3">) </span><span class="s2">AS </span><span class="s0">total_bookings</span><span class="s3">,</span>
+    <span class="s0">STRING_AGG</span><span class="s3">(</span><span class="s2">DISTINCT h</span><span class="s3">.</span><span class="s0">name</span><span class="s3">, </span><span class="s4">', '</span><span class="s3">) </span><span class="s2">AS </span><span class="s0">hotel_list</span><span class="s3">,</span>
+    <span class="s0">ROUND</span><span class="s3">(</span><span class="s0">AVG</span><span class="s3">(</span><span class="s0">b</span><span class="s3">.</span><span class="s0">check_out_date - b</span><span class="s3">.</span><span class="s0">check_in_date</span><span class="s3">), </span><span class="s5">4</span><span class="s3">) </span><span class="s2">AS </span><span class="s0">avg_stay_duration</span>
+<span class="s2">FROM </span><span class="s0">Booking b</span>
+         <span class="s2">JOIN </span><span class="s0">Customer </span><span class="s2">c ON </span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_customer = </span><span class="s2">c</span><span class="s3">.</span><span class="s0">ID_customer</span>
+         <span class="s2">JOIN </span><span class="s0">Room r </span><span class="s2">ON </span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_room = r</span><span class="s3">.</span><span class="s0">ID_room</span>
+         <span class="s2">JOIN </span><span class="s0">Hotel </span><span class="s2">h ON </span><span class="s0">r</span><span class="s3">.</span><span class="s0">ID_hotel = </span><span class="s2">h</span><span class="s3">.</span><span class="s0">ID_hotel</span>
+<span class="s2">GROUP BY c</span><span class="s3">.</span><span class="s0">ID_customer</span>
+<span class="s2">HAVING </span><span class="s0">COUNT</span><span class="s3">(</span><span class="s2">DISTINCT h</span><span class="s3">.</span><span class="s0">ID_hotel</span><span class="s3">) </span><span class="s0">&gt; </span><span class="s5">1  </span><span class="s2">AND </span><span class="s0">COUNT</span><span class="s3">(</span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_booking</span><span class="s3">) </span><span class="s0">&gt;= </span><span class="s5">3</span>
+<span class="s2">ORDER BY </span><span class="s0">total_bookings </span><span class="s2">DESC</span><span class="s3">;</span>
+
+
+<span class="s1">--Необходимо провести анализ клиентов, которые сделали более двух бронирований в разных отелях и потратили</span>
+<span class="s1">-- более 500 долларов на свои бронирования. Для этого:</span>
+<span class="s1">-- 1. Определить клиентов, которые сделали более двух бронирований и забронировали номера в более чем одном отеле.</span>
+<span class="s1">-- Вывести для каждого такого клиента следующие данные: ID_customer, имя, общее количество бронирований,</span>
+<span class="s1">-- общее количество уникальных отелей, в которых они бронировали номера, и общую сумму, потраченную на бронирования.</span>
+
+<span class="s1">-- 2. Также определить клиентов, которые потратили более 500 долларов на бронирования,</span>
+<span class="s1">-- и вывести для них ID_customer, имя, общую сумму, потраченную на бронирования, и общее количество бронирований.</span>
+
+<span class="s1">-- 3. В результате объединить данные из первых двух пунктов, чтобы получить список клиентов,</span>
+<span class="s1">-- которые соответствуют условиям обоих запросов. Отобразить поля: ID_customer, имя, общее количество бронирований,</span>
+<span class="s1">-- общую сумму, потраченную на бронирования, и общее количество уникальных отелей.</span>
+<span class="s1">-- Результаты отсортировать по общей сумме, потраченной клиентами, в порядке возрастания.</span>
+<span class="s2">WITH </span><span class="s0">ClientBookings </span><span class="s2">AS </span><span class="s3">(</span>
+    <span class="s2">SELECT</span>
+        <span class="s2">c</span><span class="s3">.</span><span class="s0">ID_customer</span><span class="s3">,</span>
+        <span class="s2">c</span><span class="s3">.</span><span class="s0">name</span><span class="s3">,</span>
+        <span class="s0">COUNT</span><span class="s3">(</span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_booking</span><span class="s3">) </span><span class="s2">AS </span><span class="s0">total_bookings</span><span class="s3">,</span>
+        <span class="s0">COUNT</span><span class="s3">(</span><span class="s2">DISTINCT h</span><span class="s3">.</span><span class="s0">ID_hotel</span><span class="s3">) </span><span class="s2">AS </span><span class="s0">unique_hotels</span><span class="s3">,</span>
+        <span class="s0">SUM</span><span class="s3">(</span><span class="s0">r</span><span class="s3">.</span><span class="s0">price</span><span class="s3">) </span><span class="s2">AS </span><span class="s0">total_spent</span>
+    <span class="s2">FROM </span><span class="s0">Booking b</span>
+             <span class="s2">JOIN </span><span class="s0">Customer </span><span class="s2">c ON </span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_customer = </span><span class="s2">c</span><span class="s3">.</span><span class="s0">ID_customer</span>
+             <span class="s2">JOIN </span><span class="s0">Room r </span><span class="s2">ON </span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_room = r</span><span class="s3">.</span><span class="s0">ID_room</span>
+             <span class="s2">JOIN </span><span class="s0">Hotel </span><span class="s2">h ON </span><span class="s0">r</span><span class="s3">.</span><span class="s0">ID_hotel = </span><span class="s2">h</span><span class="s3">.</span><span class="s0">ID_hotel</span>
+    <span class="s2">GROUP BY c</span><span class="s3">.</span><span class="s0">ID_customer</span><span class="s3">, </span><span class="s2">c</span><span class="s3">.</span><span class="s0">name</span>
+    <span class="s2">HAVING </span><span class="s0">COUNT</span><span class="s3">(</span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_booking</span><span class="s3">) </span><span class="s0">&gt; </span><span class="s5">2 </span><span class="s2">AND </span><span class="s0">COUNT</span><span class="s3">(</span><span class="s2">DISTINCT h</span><span class="s3">.</span><span class="s0">ID_hotel</span><span class="s3">) </span><span class="s0">&gt; </span><span class="s5">1</span>
+<span class="s3">),</span>
+     <span class="s0">ClientSpentMoreThan500 </span><span class="s2">AS </span><span class="s3">(</span>
+         <span class="s2">SELECT</span>
+             <span class="s2">c</span><span class="s3">.</span><span class="s0">ID_customer</span><span class="s3">,</span>
+             <span class="s2">c</span><span class="s3">.</span><span class="s0">name</span><span class="s3">,</span>
+             <span class="s0">SUM</span><span class="s3">(</span><span class="s0">r</span><span class="s3">.</span><span class="s0">price</span><span class="s3">) </span><span class="s2">AS </span><span class="s0">total_spent</span><span class="s3">,</span>
+             <span class="s0">COUNT</span><span class="s3">(</span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_booking</span><span class="s3">) </span><span class="s2">AS </span><span class="s0">total_bookings</span>
+         <span class="s2">FROM </span><span class="s0">Booking b</span>
+                  <span class="s2">JOIN </span><span class="s0">Customer </span><span class="s2">c ON </span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_customer = </span><span class="s2">c</span><span class="s3">.</span><span class="s0">ID_customer</span>
+                  <span class="s2">JOIN </span><span class="s0">Room r </span><span class="s2">ON </span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_room = r</span><span class="s3">.</span><span class="s0">ID_room</span>
+         <span class="s2">GROUP BY c</span><span class="s3">.</span><span class="s0">ID_customer</span><span class="s3">, </span><span class="s2">c</span><span class="s3">.</span><span class="s0">name</span>
+         <span class="s2">HAVING </span><span class="s0">SUM</span><span class="s3">(</span><span class="s0">r</span><span class="s3">.</span><span class="s0">price</span><span class="s3">) </span><span class="s0">&gt; </span><span class="s5">500</span>
+     <span class="s3">)</span>
+
+<span class="s2">SELECT</span>
+    <span class="s0">cb</span><span class="s3">.</span><span class="s0">ID_customer</span><span class="s3">,</span>
+    <span class="s0">cb</span><span class="s3">.</span><span class="s0">name</span><span class="s3">,</span>
+    <span class="s0">cb</span><span class="s3">.</span><span class="s0">total_bookings</span><span class="s3">,</span>
+    <span class="s0">cb</span><span class="s3">.</span><span class="s0">total_spent</span><span class="s3">,</span>
+    <span class="s0">cb</span><span class="s3">.</span><span class="s0">unique_hotels</span>
+<span class="s2">FROM </span><span class="s0">ClientBookings cb</span>
+         <span class="s2">JOIN </span><span class="s0">ClientSpentMoreThan500 csm </span><span class="s2">ON </span><span class="s0">cb</span><span class="s3">.</span><span class="s0">ID_customer = csm</span><span class="s3">.</span><span class="s0">ID_customer</span>
+<span class="s2">ORDER BY </span><span class="s0">cb</span><span class="s3">.</span><span class="s0">total_spent</span><span class="s3">;</span>
+
+
+<span class="s1">--Вам необходимо провести анализ данных о бронированиях в отелях и определить предпочтения клиентов по типу отелей. Для этого выполните следующие шаги:</span>
+
+<span class="s1">-- Категоризация отелей.</span>
+<span class="s1">-- Определите категорию каждого отеля на основе средней стоимости номера:</span>
+<span class="s1">--</span>
+<span class="s1">-- «Дешевый»: средняя стоимость менее 175 долларов.</span>
+<span class="s1">-- «Средний»: средняя стоимость от 175 до 300 долларов.</span>
+<span class="s1">-- «Дорогой»: средняя стоимость более 300 долларов.</span>
+<span class="s1">-- Анализ предпочтений клиентов.</span>
+<span class="s1">-- Для каждого клиента определите предпочитаемый тип отеля на основании условия ниже:</span>
+<span class="s1">--</span>
+<span class="s1">-- Если у клиента есть хотя бы один «дорогой» отель, присвойте ему категорию «дорогой».</span>
+<span class="s1">-- Если у клиента нет «дорогих» отелей, но есть хотя бы один «средний», присвойте ему категорию «средний».</span>
+<span class="s1">-- Если у клиента нет «дорогих» и «средних» отелей, но есть «дешевые», присвойте ему категорию предпочитаемых отелей «дешевый».</span>
+<span class="s1">-- Вывод информации.</span>
+<span class="s1">-- Выведите для каждого клиента следующую информацию:</span>
+<span class="s1">--</span>
+<span class="s1">-- ID_customer: уникальный идентификатор клиента.</span>
+<span class="s1">-- name: имя клиента.</span>
+<span class="s1">-- preferred_hotel_type: предпочитаемый тип отеля.</span>
+<span class="s1">-- visited_hotels: список уникальных отелей, которые посетил клиент.</span>
+<span class="s1">-- Сортировка результатов.</span>
+<span class="s1">-- Отсортируйте клиентов так, чтобы сначала шли клиенты с «дешевыми» отелями, затем со «средними» и в конце — с «дорогими».</span>
+<span class="s2">WITH </span><span class="s0">HotelCategories </span><span class="s2">AS </span><span class="s3">(</span>
+    <span class="s2">SELECT</span>
+        <span class="s2">h</span><span class="s3">.</span><span class="s0">ID_hotel</span><span class="s3">,</span>
+        <span class="s2">CASE</span>
+            <span class="s2">WHEN </span><span class="s0">AVG</span><span class="s3">(</span><span class="s0">r</span><span class="s3">.</span><span class="s0">price</span><span class="s3">) </span><span class="s0">&lt; </span><span class="s5">175 </span><span class="s2">THEN </span><span class="s4">'Дешевый'</span>
+            <span class="s2">WHEN </span><span class="s0">AVG</span><span class="s3">(</span><span class="s0">r</span><span class="s3">.</span><span class="s0">price</span><span class="s3">) </span><span class="s2">BETWEEN </span><span class="s5">175 </span><span class="s2">AND </span><span class="s5">300 </span><span class="s2">THEN </span><span class="s4">'Средний'</span>
+            <span class="s2">WHEN </span><span class="s0">AVG</span><span class="s3">(</span><span class="s0">r</span><span class="s3">.</span><span class="s0">price</span><span class="s3">) </span><span class="s0">&gt; </span><span class="s5">300 </span><span class="s2">THEN </span><span class="s4">'Дорогой'</span>
+            <span class="s2">END AS </span><span class="s0">hotel_category</span>
+    <span class="s2">FROM </span><span class="s0">Hotel </span><span class="s2">h</span>
+             <span class="s2">JOIN </span><span class="s0">Room r </span><span class="s2">ON h</span><span class="s3">.</span><span class="s0">ID_hotel = r</span><span class="s3">.</span><span class="s0">ID_hotel</span>
+    <span class="s2">GROUP BY h</span><span class="s3">.</span><span class="s0">ID_hotel</span>
+<span class="s3">),</span>
+     <span class="s0">CustomerPreferences </span><span class="s2">AS </span><span class="s3">(</span>
+         <span class="s2">SELECT</span>
+             <span class="s0">b</span><span class="s3">.</span><span class="s0">ID_customer</span><span class="s3">,</span>
+             <span class="s0">MAX</span><span class="s3">(</span><span class="s2">CASE</span>
+                     <span class="s2">WHEN </span><span class="s0">hc</span><span class="s3">.</span><span class="s0">hotel_category = </span><span class="s4">'Дорогой' </span><span class="s2">THEN </span><span class="s4">'Дорогой'</span>
+                     <span class="s2">WHEN </span><span class="s0">hc</span><span class="s3">.</span><span class="s0">hotel_category = </span><span class="s4">'Средний' </span><span class="s2">THEN </span><span class="s4">'Средний'</span>
+                     <span class="s2">WHEN </span><span class="s0">hc</span><span class="s3">.</span><span class="s0">hotel_category = </span><span class="s4">'Дешевый' </span><span class="s2">THEN </span><span class="s4">'Дешевый'</span>
+                     <span class="s2">ELSE NULL</span>
+                 <span class="s2">END</span><span class="s3">) </span><span class="s2">AS </span><span class="s0">preferred_hotel_type</span><span class="s3">,</span>
+             <span class="s0">STRING_AGG</span><span class="s3">(</span><span class="s2">DISTINCT h</span><span class="s3">.</span><span class="s0">name</span><span class="s3">, </span><span class="s4">', '</span><span class="s3">) </span><span class="s2">AS </span><span class="s0">visited_hotels</span>
+         <span class="s2">FROM </span><span class="s0">Booking b</span>
+                  <span class="s2">JOIN </span><span class="s0">Room r </span><span class="s2">ON </span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_room = r</span><span class="s3">.</span><span class="s0">ID_room</span>
+                  <span class="s2">JOIN </span><span class="s0">Hotel </span><span class="s2">h ON </span><span class="s0">r</span><span class="s3">.</span><span class="s0">ID_hotel = </span><span class="s2">h</span><span class="s3">.</span><span class="s0">ID_hotel</span>
+                  <span class="s2">JOIN </span><span class="s0">HotelCategories hc </span><span class="s2">ON h</span><span class="s3">.</span><span class="s0">ID_hotel = hc</span><span class="s3">.</span><span class="s0">ID_hotel</span>
+         <span class="s2">GROUP BY </span><span class="s0">b</span><span class="s3">.</span><span class="s0">ID_customer</span>
+     <span class="s3">)</span>
+
+<span class="s2">SELECT</span>
+    <span class="s0">cp</span><span class="s3">.</span><span class="s0">ID_customer</span><span class="s3">,</span>
+    <span class="s2">c</span><span class="s3">.</span><span class="s0">name</span><span class="s3">,</span>
+    <span class="s0">cp</span><span class="s3">.</span><span class="s0">preferred_hotel_type</span><span class="s3">,</span>
+    <span class="s0">cp</span><span class="s3">.</span><span class="s0">visited_hotels</span>
+<span class="s2">FROM </span><span class="s0">CustomerPreferences cp</span>
+         <span class="s2">JOIN </span><span class="s0">Customer </span><span class="s2">c ON </span><span class="s0">cp</span><span class="s3">.</span><span class="s0">ID_customer = </span><span class="s2">c</span><span class="s3">.</span><span class="s0">ID_customer</span>
+<span class="s2">ORDER BY</span>
+    <span class="s2">CASE </span><span class="s0">cp</span><span class="s3">.</span><span class="s0">preferred_hotel_type</span>
+        <span class="s2">WHEN </span><span class="s4">'Дешевый' </span><span class="s2">THEN </span><span class="s5">1</span>
+        <span class="s2">WHEN </span><span class="s4">'Средний' </span><span class="s2">THEN </span><span class="s5">2</span>
+        <span class="s2">WHEN </span><span class="s4">'Дорогой' </span><span class="s2">THEN </span><span class="s5">3</span>
+        <span class="s2">END</span><span class="s3">;</span></pre>
+</body>
+</html>
